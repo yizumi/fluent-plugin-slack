@@ -109,8 +109,15 @@ DESC
       val.split(',')
     end
 
+    config_param :unescape_newline,     :bool, default: false
+    desc <<-DESC
+Unescapes double escaped newline-characters.
+If the newline-character is double escaped (that is an escaped-backslash, followed by an 'n' character),
+this will resolve it to a proper new-line character before sending it to Slack, so the new lines properly shows up.
+DESC
+
     # for test
-    attr_reader :slack, :time_format, :localtime, :timef, :mrkdwn_in, :post_message_opts
+    attr_reader :slack, :time_format, :localtime, :timef, :mrkdwn_in, :post_message_opts, :unescape_newline
 
     def initialize
       super
@@ -306,7 +313,11 @@ DESC
 
     def build_message(record)
       values = fetch_keys(record, @message_keys)
-      @message % values
+      message = @message % values
+      if @unescape_newline
+        return message.gsub("\\n", "\n")
+      end
+      message
     end
 
     def build_title(record)

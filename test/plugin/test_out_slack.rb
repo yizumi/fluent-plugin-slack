@@ -520,4 +520,30 @@ class SlackOutputTest < Test::Unit::TestCase
       d.run
     end
   end
+
+  def test_unescape_newline
+    d = create_driver(CONFIG + %[unescape_newline true])
+    time = Time.parse("2014-01-01 22:00:00 UTC").to_i
+    d.tag = 'test'
+    mock(d.instance.slack).post_message(default_payload.merge({
+      text: "foo\nbar\n" 
+    }), {})
+    with_timezone('Asia/Tokyo') do
+      d.emit({message: "foo\\nbar"}, time)
+      d.run
+    end
+  end
+
+  def test_unescape_newline_set_false
+    d = create_driver(CONFIG + %[unescape_newline false])
+    time = Time.parse("2014-01-01 22:00:00 UTC").to_i
+    d.tag = 'test'
+    mock(d.instance.slack).post_message(default_payload.merge({
+      text: "foo\\nbar\n" 
+    }), {})
+    with_timezone('Asia/Tokyo') do
+      d.emit({message: "foo\\nbar"}, time)
+      d.run
+    end
+  end
 end
